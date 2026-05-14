@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>饗宴邀約 - 互動邀請函</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;700&display=swap');
+
+        body {
+            background-color: #fdf2f2;
+            font-family: 'Noto Serif TC', serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* 改為由頂部開始排列 */
+            padding: 600px 20px 100px 20px; /* 增加 padding-top (原為160px) 讓整體下移 */
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            height: 200px;
+            cursor: pointer;
+            perspective: 1000px;
+            z-index: 10;
+        }
+
+        .envelope {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #c0392b;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 5;
+        }
+
+        .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #c0392b;
+            clip-path: polygon(0 0, 50% 60%, 100% 0);
+            z-index: 15;
+            transform-origin: top;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.2s 0.3s;
+        }
+
+        .pocket {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e74c3c;
+            clip-path: polygon(0 0, 50% 60%, 100% 0, 100% 100%, 0 100%);
+            z-index: 10;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .card {
+            position: absolute;
+            bottom: 5px;
+            left: 5%;
+            width: 90%;
+            height: 380px;
+            background-color: white;
+            z-index: 8;
+            padding: 25px 20px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 4px double #d4af37;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* 開啟狀態控制 */
+        .envelope-wrapper.open .flap {
+            transform: rotateX(180deg);
+            z-index: 5;
+        }
+
+        .envelope-wrapper.open .card {
+            transform: translateY(-290px);
+            opacity: 1;
+            z-index: 20;
+            pointer-events: auto;
+        }
+
+        .title {
+            font-family: 'Ma Shan Zheng', cursive;
+            color: #c0392b;
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+        }
+
+        .photo-frame {
+            width: 100%;
+            height: 140px;
+            background-color: #f9fafb;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        /* 自定義成功訊息 */
+        #statusMsg {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: #27ae60;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: fadeInOut 3s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -20px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+
+        .hint {
+            margin-top: 30px;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+    </style>
+</head>
+<body>
+
+    <div id="statusMsg">收到！我們當天見囉！</div>
+
+    <div class="container-wrapper">
+        <div class="envelope-wrapper" id="invitation">
+            <!-- 信封蓋子 -->
+            <div class="flap"></div>
+            
+            <!-- 信封本體 -->
+            <div class="envelope">
+                <div class="pocket"></div>
+                
+                <!-- 封蠟裝飾 -->
+                <div class="absolute inset-0 flex items-center justify-center z-[16] transition-opacity duration-300" id="seal">
+                    <div class="bg-[#d4af37] w-14 h-14 rounded-full flex items-center justify-center border-2 border-white shadow-xl">
+                        <span class="text-white font-bold text-xl">邀</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 邀請卡片 -->
+            <div class="card" id="mainCard">
+                <h2 class="title">誠摯邀請</h2>
+                <div class="photo-frame">
+                    <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=400" 
+                         alt="聚餐相片" 
+                         class="w-full h-full object-cover">
+                </div>
+                
+                <div class="text-[#e74c3c] text-2xl mb-1">♥</div>
+                
+                <div class="text-sm text-gray-700 space-y-2">
+                    <p class="font-bold text-base text-gray-900">期待與您的美味饗宴</p>
+                    <p>親愛的朋友：</p>
+                    <p>想邀請您一起共享美食、暢談心事</p>
+                    
+                    <div class="mt-4 pt-4 border-t border-dashed border-gray-300 text-xs text-gray-600 text-left w-full space-y-1">
+                        <div class="flex items-center">
+                            <span class="mr-3">📅</span> 2026年05月29日
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-3">⏰</span> 晚上 19:30
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-3">📍</span> 樂葵法式鐵板燒-承德店 (103臺北市大同區黎明里承德路一段2號7樓)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 確認按鈕 -->
+                <button id="confirmBtn" 
+                        class="mt-auto w-full bg-[#c0392b] text-white py-3 rounded-xl text-sm font-bold hover:bg-red-700 active:scale-95 transition-all shadow-lg">
+                    點擊確認參加
+                </button>
+            </div>
+        </div>
+
+        <div class="hint" id="hint">
+            點擊信封 開啟驚喜
+        </div>
+    </div>
+
+    <script>
+        const invitation = document.getElementById('invitation');
+        const seal = document.getElementById('seal');
+        const hint = document.getElementById('hint');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        // 處理開合邏輯
+        invitation.addEventListener('click', function(e) {
+            // 如果點擊的是卡片內的按鈕，不觸發關閉
+            if (e.target.closest('#confirmBtn')) return;
+
+            const isOpen = invitation.classList.toggle('open');
+            
+            if (isOpen) {
+                seal.style.opacity = '0';
+                hint.textContent = '點擊收回卡片';
+            } else {
+                seal.style.opacity = '1';
+                hint.textContent = '點擊信封 開啟驚喜';
+            }
+        });
+
+        // 處理按鈕點擊
+        confirmBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // 阻止冒泡到信封
+            
+            // 顯示成功訊息
+            statusMsg.style.display = 'block';
+            
+            // 讓按鈕變色顯示已確認
+            confirmBtn.textContent = '已確認參加 ✔';
+            confirmBtn.classList.remove('bg-[#c0392b]');
+            confirmBtn.classList.add('bg-green-600');
+            
+            setTimeout(() => {
+                statusMsg.style.display = 'none';
+            }, 3000);
+        });
+    </script>
+
+</body>
+</html>
